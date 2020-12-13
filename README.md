@@ -1,7 +1,9 @@
 # TAMZSpaceInvaders
-Aplikace je velice jednoduchá při spuštění se objeví menu se 2 tlačítky. První spustí hru , druhé ukáže nejlepší skore.
+Aplikace je velice jednoduchá při spuštění se objeví menu se 3 tlačítky. První spustí hru v režimu classic, druhé v režimu endless a třetí ukáže nejlepší skóre.
 Při spuštění hry začnou přilétat nepřátelé. Ti mají 1-4 životy. Pokud se dotknou hráče nebo spodní části obrazovky, zemřou a hráči se ubere život.
-Hráč má celkem 3 životy. Pokud hráči dojdou životy nebo hráč sestřelil všechny nepřátele, hra končí, skore se zapíše do databáze.
+Hráč má celkem 3 životy. Pokud hráči dojdou životy, hra končí, skóre se zapíše do databáze.
+V režimu classic se nepřátelé pohybují v bloku od kraje ke kraji, jejich rychlost se postupně zvyšuje. Všichni nepřátele se spawnou při spuštění hry. Při zabití všech nepřátel se hra ukončí a přehraje se výtězný zvuk.
+V endless módu hráč nemůže vyhrát, nepřátele se spawnují postupně každé 3s a pohybují se pouze rovně dolů.
 
 Hra obsahuje: vykreslování do canvasu, vlastní view, čtení a zápis do databáze, vlákna, zvuky
 
