@@ -11,8 +11,11 @@ public class Game extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(new GameView(this));
+        Bundle extras=getIntent().getExtras();
+        boolean en=extras.getBoolean("Endless");
+        setContentView(new GameView(this,en));
     }
+
 
     public void fin()
     {

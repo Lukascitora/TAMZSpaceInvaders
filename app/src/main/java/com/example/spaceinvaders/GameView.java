@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Random;
 
 /**
  * TODO: document your custom view class.
@@ -46,6 +47,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
     private Game gameActivity;
     private int enemiesInRow=4;
     private MediaPlayer shootSound,winSound,hitSound;
+    private boolean endless;
     DBHelper dbhelper;
 
     int displayHeight=Resources.getSystem().getDisplayMetrics().heightPixels;
@@ -53,6 +55,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
 
     private Cooldown fire=new Cooldown(600),
             newPhase=new Cooldown(10000);
+    private Cooldown spawnEnemy;
     private EnemyField enemyField;
 
     private ArrayList<missile> missiles=new ArrayList<missile>();
@@ -67,8 +70,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
 
     int clickPosX;
 
-    public GameView(Context context) {
+    public GameView(Context context,boolean endless) {
         super(context);
+        this.endless=endless;
         getHolder().addCallback(this);
         thread=new MainThread(getHolder(),this);
         setFocusable(true);
@@ -77,6 +81,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
 
     public GameView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        this.endless=false;
         getHolder().addCallback(this);
         thread=new MainThread(getHolder(),this);
         setFocusable(true);
@@ -85,6 +90,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
 
     public GameView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        this.endless=false;
         getHolder().addCallback(this);
         thread=new MainThread(getHolder(),this);
         setFocusable(true);
@@ -115,12 +121,16 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
         player=new Player(3,displayWight/2,
                 displayHeight-pictures[4].getHeight()*2,pictures[4]);
 
-        enemyField=new EnemyField(context,enemyFieldIds,enemiesInRow,new Bitmap[]{pictures[0],pictures[1],pictures[2],pictures[3]});
+        enemyField=new EnemyField(context,enemyFieldIds,enemiesInRow,new Bitmap[]{pictures[0],pictures[1],pictures[2],pictures[3]},endless);
         gameActivity=(Game)context;
         shootSound=MediaPlayer.create(getContext(),R.raw.shoot);
         hitSound=MediaPlayer.create(getContext(),R.raw.hit);
         winSound=MediaPlayer.create(getContext(),R.raw.win);
-        newPhase.reset();
+        if (!endless){
+            newPhase.reset();}
+        else{
+            spawnEnemy=new Cooldown(3000);
+        }
         fire.reset();
     }
 
@@ -185,10 +195,22 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
     public void update(long elapsed) throws IOException {
         player.pos[0]=clickPosX;
 
-        newPhase.update(elapsed);
-        if(newPhase.readyReset())
-        {
-            enemyField.phase=enemyField.phase*2;
+        if(!endless){
+            newPhase.update(elapsed);
+            if(newPhase.readyReset())
+            {
+                 enemyField.phase=enemyField.phase*2;
+            }
+        }else{
+            spawnEnemy.update(elapsed);
+            if(spawnEnemy.readyReset())
+            {
+                Random r=new Random();
+                int id =r.nextInt(5-1)+1;
+                int enX=r.nextInt(displayWight-pictures[id-1].getWidth())+pictures[id-1].getWidth()/2;
+
+                enemyField.addEnemy(id,enX,pictures[id-1]);
+            }
         }
 
         enemyField.update(elapsed,displayHeight,displayWight,player);
@@ -229,10 +251,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback{
         }
 
 
-        if (player.hp<=0||enemyField.enemies.isEmpty())
+        if (player.hp<=0||(enemyField.enemies.isEmpty()&&enemyField.endlessMode==false))
         {
-            if (player.hp<=0){}
-            else{
+            if (player.hp>0)
+            {
             winSound.start();}
             dbhelper=new DBHelper(getContext());
             dbhelper.insertItem(player.score);
